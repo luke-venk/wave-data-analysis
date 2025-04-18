@@ -20,6 +20,8 @@ resdb = Redis(host=_redis_ip, port=_redis_port, db=3)  # Database for job result
 _log_level = os.environ.get('LOG_LEVEL')  # Environment variable for logging level
 logging.basicConfig(level=_log_level)
 
+########## PRIVATE ##########
+
 def _generate_jid() -> str:
     '''
     Generates a pseudo-random identifier for a job.
@@ -48,6 +50,8 @@ def _queue_job(jid: str) -> None:
     Adds a job to the HotQueue.
     '''
     q.put(jid)
+
+########## PUBLIC ##########
     
 def add_job(month: str, year:str, method: str, status='Pending'):
     '''
