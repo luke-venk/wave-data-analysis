@@ -1,0 +1,5 @@
+flask
+redis
+hotqueue
+requests
+pytest
