@@ -3,8 +3,8 @@ FROM python:3.12
 
 # Copy files over into working directory
 WORKDIR /app
-COPY src/* ./src
-COPY test/* ./test
+COPY src/* ./src/
+COPY test/* ./test/
 COPY requirements.txt ./
 
 # Install dependencies

@@ -32,7 +32,7 @@ def index() -> tuple[str, int]:
     Prints hello world. Simply used to confirm app is
     up and running. Returns HTTP status code "I'm a teapot."
     '''
-    return 'Hello, world!', 418
+    return 'Hello, world!\n', 418
 
 @app.route('/help', methods=['GET'])
 def help() -> tuple[str, int]:

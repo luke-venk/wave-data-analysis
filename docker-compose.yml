@@ -20,7 +20,7 @@ services:
     environment:
       - REDIS_HOST_IP=redis-db
       - LOG_LEVEL=INFO
-    command: src/api.py
+    command: src/flask_api.py
   worker:
     build: 
       context: .

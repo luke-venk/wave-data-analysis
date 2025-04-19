@@ -1,12 +1,11 @@
 from redis import Redis
 from redis.exceptions import BusyLoadingError
 from hotqueue import HotQueue
-from src.jobs import update_job_status, get_job_by_id, save_results
+from jobs import update_job_status, get_job_by_id, save_results
 import os
-import json
 import time
 import logging
-from datetime import datetime
+
 
 ########## CONFIG ##########
 # Environment variables
