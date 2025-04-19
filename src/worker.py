@@ -86,3 +86,11 @@ def plot_height_vs_time(month, year):
             either succeeded or failed.
     '''
     # TODO: @Gabriel
+    
+if __name__ == '__main__':
+    for _ in range(15):
+        try:
+            pull_job()
+        except BusyLoadingError:
+            logging.warning('Redis database not fully loaded, trying again in 1 second...')
+            time.sleep(1)
