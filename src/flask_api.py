@@ -122,47 +122,6 @@ def get_closest_wave(epoch: str) -> tuple[str, int]:
     
     # TODO: @Gabriel
     
-@app.route('/stats/<string:month_year', methods=['GET'])
-def wave_statistics(month_year: str) -> tuple[str, int]:
-    '''
-    Prints various summary statistics for all the waves in a 
-    user-specified time period. Wave characteristics include 
-    wave height, period, direction, and temperature. Statistics
-    include median, high, low, and standard deviation.
-    
-    Arguments: 
-        month_year (str): The month and year of the time period of which
-            the user is querying statistics. Formatted as "MM-YYYY"
-    Returns: 
-        output (str): Summary statistics of the waves in that time period
-        status code (int):
-            200: Request succeeded
-            400: Bad request
-            404: Data not found
-    '''
-    # TODO: @Luke
-
-@app.route('/plot/<string:month_year', methods=['GET'])
-def plot_height_vs_time(month_year: str) -> tuple[str, int]:
-    '''
-    Plots 2D histogram of height vs. time for all the waves in a 
-    user-specified time period. The function will utilize Matplotlib
-    and save the plot to file, allowing the user to see high tide and 
-    low tide throughout the year.
-    
-    Arguments: 
-        month_year (str): The month and year of the time period of which
-            the user is querying statistics. Formatted as "MM-YYYY"
-    Returns: 
-        output (str): Message either confirming the operation 
-            either succeeded or failed.
-        status code (int):
-            200: Request succeeded
-            400: Bad request
-            404: Data not found
-    '''
-    # TODO: @Gabriel
-    
 @app.route('/jobs', methods=['POST', 'GET'])
 def jobs() -> tuple[str, int]:
     '''
