@@ -4,6 +4,8 @@ from hotqueue import HotQueue
 import os
 import logging
 import requests
+import pandas as pd
+import json
 from jobs import add_job, get_job_by_id, get_results_by_id
 
 
@@ -78,9 +80,16 @@ def data() -> tuple[str, int]:
             logging.debug('Database empty. Populating database now.')
             
             # TODO @Tavishka
+            df = pd.read_csv('data/waves.csv')
+            df.replace(99.99, pd.NA, inplace=True)  # sanitize
+            records = df.to_dict(orient='records')
+
+            for i, record in enumerate(records):
+                rd.set(f"wave:{i}", json.dumps(record))
             
             output = '201: Database has been successfully loaded with data.'
             status_code = 201
+
         else:
             output = '200: Database is already populated.'
             status_code = 200
@@ -89,8 +98,12 @@ def data() -> tuple[str, int]:
         logging.debug('Printing all data now.')
         
         # TODO @Tavishka
-            
-        # return jsonify(gene_data_list), 200
+        keys = rd.keys('wave:*')
+        wave_data_list = [json.loads(rd.get(key)) for key in keys]
+
+        # return jsonify(wave_data_list), 200
+        return wave_data_list, 200
+
     elif request.method == 'DELETE':
         logging.debug('Deleting database now.')
         rd.flushdb()
