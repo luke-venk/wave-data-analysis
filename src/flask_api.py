@@ -6,6 +6,7 @@ import logging
 import requests
 import pandas as pd
 import json
+from datetime import datetime
 from jobs import add_job, get_job_by_id, get_results_by_id
 
 
@@ -133,7 +134,42 @@ def get_closest_wave(epoch: str) -> tuple[str, int]:
     if rd.dbsize() == 0:
         return 'ERROR 404: No data found in the database.\n', 404
     
-    # TODO: @Gabriel
+    # TODO: @Tavishka
+    try:
+        input_time = datetime.strptime(epoch, "%m/%d/%Y %H:%M")
+            
+        keys = rd.keys("wave:*")
+        if not keys:
+            return "ERROR 404: No wave data entries found.\n", 404
+            
+        closest_record = None
+        min_time_diff = float('inf')
+            
+        for key in keys:
+            record = json.loads(rd.get(key))
+            record_time_str = record.get("Date/Time")
+            if not record_time_str:
+                continue
+                
+            try:
+                record_time = datetime.strptime(record_time_str, "%m/%d/%Y %H:%M")
+                time_diff = abs((record_time - input_time).total_seconds())
+                    
+                if time_diff < min_time_diff:
+                    min_time_diff = time_diff
+                    closest_record = record
+                
+            except ValueError:
+                continue  # Skip invalid formats
+                    
+        if closest_record:
+            return json.dumps(closest_record), 200
+        else:
+            return "ERROR 404: No valid timestamps found in data.\n", 404
+        
+    except ValueError:
+        return "ERROR 400: Bad request. Use format 'MM/DD/YYYY HH:MM'.\n", 400
+
     
 @app.route('/jobs', methods=['POST', 'GET'])
 def jobs() -> tuple[str, int]:
