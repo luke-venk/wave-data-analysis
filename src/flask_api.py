@@ -115,8 +115,9 @@ def data() -> tuple[str, int]:
         status_code = 405
     return output + '\n', status_code
 
-@app.route('/waves/<string:epoch>', methods=['GET'])
-def get_closest_wave(epoch: str) -> tuple[str, int]:
+@app.route('/waves', methods=['GET'])
+def get_closest_wave() -> tuple[str, int]:
+    epoch = request.args.get("epoch")
     '''
     Returns JSON-formatted dictionary of the data corresponding
     to the wave data entry closest in time to the input epoch.
