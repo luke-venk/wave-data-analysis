@@ -22,6 +22,9 @@ spec:
           volumeMounts:
             - name: app-test-pvc-redis
               mountPath: /data
+          ports:
+            - name: http
+              containerPort: 6379
       volumes:
         - name: app-test-pvc-redis
           persistentVolumeClaim:

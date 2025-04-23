@@ -27,6 +27,9 @@ spec:
           volumeMounts:
             - name: app-test-pvc-flask
               mountPath: /app/data
+          ports:
+            - name: http
+              containerPort: 5000
       volumes:
         - name: app-test-pvc-flask
           persistentVolumeClaim:
