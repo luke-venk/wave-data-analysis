@@ -20,7 +20,7 @@ spec:
           image: wave-data-analysis:1.0
           command: ["python", "src/flask_api.py"]
           env:
-            - name: REDIS_HOST
+            - name: REDIS_HOST_IP
               value: redis_db
             - name: LOG_LEVEL
               value: INFO
