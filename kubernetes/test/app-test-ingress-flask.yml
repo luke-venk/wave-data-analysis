@@ -1,0 +1,21 @@
+---
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: app-test-ingress-flask
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: "wave-data-analysis-test.coe332.tacc.cloud"
+      http: 
+        paths: 
+          - pathType: Prefix
+            path: "/"
+            backend: 
+              service: 
+                name: app-test-service-flask
+                port: 
+                  number: 5000
+...
