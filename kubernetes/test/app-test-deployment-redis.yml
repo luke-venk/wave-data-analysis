@@ -1,0 +1,29 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-test-deployment-redis
+  labels:
+    app: wave-data-analysis
+spec:
+  replicas: 1
+  selector: 
+    matchLabels:
+      app: wave-data-analysis
+  template:
+    metadata:
+      labels:
+        app: wave-data-analysis
+    spec:
+      containers:
+        - name: app-test-deployment-redis
+          image: redis:7
+          command: ["--save", "1", "1"]
+          volumeMounts:
+            - name: app-test-pvc-redis
+              mountPath: /data
+      volumes:
+        - name: app-test-pvc-redis
+          persistentVolumeClaim:
+            claimName: app-test-pvc-redis
+...
