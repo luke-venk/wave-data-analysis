@@ -6,7 +6,7 @@ metadata:
   labels:
     app: wave-data-analysis
 spec:
-  replicas: 1  # Want one pod running at a time
+  replicas: 1
   selector: 
     matchLabels:
       app: wave-data-analysis
