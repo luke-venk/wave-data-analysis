@@ -5,6 +5,11 @@ prod: production-ready configuraiton
 test: lighter weight or temporary config for test/staging environments
 
 deployments: long-running applications for containers of Flask API, worker, and Redis DB
-services: expose deployments to other pods or the outside world
+services: defines how other applications can access our application
+- ClusterIP: only accessible inside cluster (only needed internally)
+    - Flask and Redis will use this to talk to each other
+- NodePort: exposes service on a port on every node's IP
+    - Flask will use this so users can make requests from their PC
 ingress (Flask only): used for HTTP routing
+- a lot prettier than NodePort routing (TCP)
 pvc (Redis only): ensures Redis data is stored on disk and survives pod restarts
