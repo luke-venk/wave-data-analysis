@@ -1,0 +1,34 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-test-deployment-flask
+  labels:
+    app: wave-data-analysis
+spec:
+  replicas: 1  # Want one pod running at a time
+  selector: 
+    matchLabels:
+      app: wave-data-analysis
+  template:
+    metadata: 
+      labels: 
+        app: wave-data-analysis
+    spec:
+      containers:
+        - name: app-test-deployment-flask
+          image: wave-data-analysis:1.0
+          command: ["python", "src/flask_api.py"]
+          env:
+            - name: REDIS_HOST
+              value: redis_db
+            - name: LOG_LEVEL
+              value: INFO
+          volumeMounts:
+            - name: app-test-pvc-flask
+              mountPath: /app/data
+      volumes:
+        - name: app-test-pvc-flask
+          persistentVolumeClaim:
+            claimName: app-test-pvc-flask
+...
