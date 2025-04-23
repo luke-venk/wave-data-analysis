@@ -42,7 +42,7 @@ def pull_job(job_id: str):
     job_dict = get_job_by_id(job_id)  # Get dictionary of job information
     month = str(job_dict['month'])
     year = str(job_dict['year'])
-    method = str(job_dict['limit'])
+    method = str(job_dict['method'])
     
     # Ensure not empty job
     if job_dict is None:

@@ -277,7 +277,7 @@ def get_job_info(job_id: str) -> tuple[str, int]:
             output += '  Status:        ' + job_dict['status'] + '\n'
             output += '  Month:    ' + str(job_dict['month']) + '\n'
             output += '  Year:     ' + str(job_dict['year']) + '\n'
-            output += '  Method:         ' + job_dict['limit'] + '\n'
+            output += '  Method:         ' + job_dict['method'] + '\n'
             status_code = 200
             return output, status_code
     else:
@@ -312,7 +312,7 @@ def get_job_results(job_id: str) -> tuple[str, int]:
             status = job_dict['status']
             month = str(job_dict['month'])
             year = str(job_dict['year'])
-            method = job_dict['limit']
+            method = job_dict['method']
             
             if status == 'Completed':
                 logging.debug('Printing job results to user.')
