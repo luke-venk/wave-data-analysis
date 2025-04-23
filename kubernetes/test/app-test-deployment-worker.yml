@@ -1,0 +1,27 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-test-deployment-worker
+  labels:
+    app: wave-data-analysis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wave-data-analysis
+  template:
+    metadata:
+      labels: 
+        app: wave-data-analysis
+    spec:
+      containers:
+        - name: worker
+          image: wave-data-analysis:1.0
+          command: ["python", "src/worker.py"]
+          env:
+            - name: REDIS_HOST_IP
+              value: redis-db
+            - name: LOG_LEVEL
+              value: INFO
+...
