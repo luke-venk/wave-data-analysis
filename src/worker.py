@@ -84,10 +84,10 @@ def wave_statistics(month, year):
         wave_month_year_raw = wave_df[(wave_df['Date/Time'].dt.month == month) & (wave_df['Date/Time'].dt.year == year)]
         wave_month_year_stats = wave_month_year_raw[['Hmax', 'Peak Direction', 'SST']].describe()
         wave_month_year_stats_dict = wave_month_year_stats.to_dict()
+        logging.info('Job (stats) successfully finished.')
         return wave_month_year_stats_dict
-
-
     except ValueError:
+        logging.info('Job (stats) failed.')
         return '''ERROR 400: Bad request. Use format '{"month": MM, "year": YYYY, "method": "<method>"}', 400'''
     
 def plot_height_vs_time(month, year):
