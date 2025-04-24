@@ -97,7 +97,9 @@ def data() -> tuple[str, int]:
             
             # Clean and format
             df.replace(99.99, pd.NA, inplace=True)  
-            
+            # Sort by timestamp
+            df.sort_values(by=df.columns[0], inplace=True) 
+
             # Store in Redis using the timestamp as the key
             # The other colums will be the value
             rd_keys = df.iloc[:, 0]
