@@ -7,6 +7,8 @@ import requests
 import pandas as pd
 import json
 from datetime import datetime
+import zipfile
+from io import BytesIO
 from jobs import add_job, get_job_by_id, get_results_by_id
 
 
@@ -81,7 +83,16 @@ def data() -> tuple[str, int]:
             logging.debug('Database empty. Populating database now.')
             
             # TODO @Tavishka
-            df = pd.read_csv('data/waves.csv')
+            url = "https://www.kaggle.com/api/v1/datasets/download/jolasa/waves-measuring-buoys-data-mooloolaba?datasetVersionNumber=1"
+            response = requests.get(url, allow_redirects=True)
+            if response.status_code == 200:
+                with zipfile.ZipFile(BytesIO(response.content), 'r') as zip_ref:
+                    file_name = zip_ref.namelist()[0]
+                    with zip_ref.open(file_name) as f:
+                        df = pd.read_csv(f)
+            else:
+                return 'ERROR 404: Failed to download dataset from Kaggle.\n', 404
+            
             df.replace(99.99, pd.NA, inplace=True)  # sanitize
             records = df.to_dict(orient='records')
 
