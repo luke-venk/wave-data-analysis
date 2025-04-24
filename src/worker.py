@@ -40,9 +40,15 @@ def pull_job(job_id: str):
     '''
     logging.debug(f'Worker is pulling job {job_id}.')
     job_dict = get_job_by_id(job_id)  # Get dictionary of job information
-    month = str(job_dict['month'])
-    year = str(job_dict['year'])
+    logging.debug(f'job_dict is: {job_dict}')
     method = str(job_dict['method'])
+    
+    try:
+        month = int(job_dict['month'])
+        year = int(job_dict['year'])
+    except ValueError:
+        logging.error('ERROR: month and year arguments are not valid integer values.')
+        return
     
     # Ensure not empty job
     if job_dict is None:
@@ -55,11 +61,14 @@ def pull_job(job_id: str):
         output = wave_statistics(month, year)
     elif method == 'plot':
         output = plot_height_vs_time(month, year)
+    else:
+        logging.error('ERROR: Invalid method for request. Should be "stats" or "plot".')
+        return
     
-    save_results(job_id, output)  # Save results to Redis database
+    save_results(job_id, output)
     update_job_status(job_id, status='Completed')
     
-def wave_statistics(month, year):
+def wave_statistics(month: int, year: int) -> str:
     '''
     Prints various summary statistics for all the waves in a 
     user-specified time period. Wave characteristics include 
@@ -67,30 +76,27 @@ def wave_statistics(month, year):
     include median, high, low, and standard deviation.
     
     Arguments: 
-        month_year (str): The month and year of the time period of which
-            the user is querying statistics. Formatted as "MM-YYYY"
+        month (int): The month of the query
+        year (int): The year of the query
+            
     Returns: 
         output (str): Summary statistics of the waves in that time period
     '''
     # TODO: @Gabriel
-    try:
-        month = int(month)
-        year = int(year)
-        keys = rd.keys('waves:*')
-        data = [json.loads(rd.get(key)) for key in keys] # Use keys to parse database and load the list of dictionaries
-        wave_df = pd.DataFrame(data)
-        wave_df['Date/Time'] = pd.to_datetime(wave_df['Date/Time'], format='%d/%m/%Y %H:%M') # Convert to datetime python object for easier parsing
+    keys = rd.keys('waves:*')
+    data = [json.loads(rd.get(key)) for key in keys] # Use keys to parse database and load the list of dictionaries
+    wave_df = pd.DataFrame(data)
+    wave_df['Date/Time'] = pd.to_datetime(wave_df['Date/Time'], format='%d/%m/%Y %H:%M') # Convert to datetime python object for easier parsing
 
-        wave_month_year_raw = wave_df[(wave_df['Date/Time'].dt.month == month) & (wave_df['Date/Time'].dt.year == year)]
-        wave_month_year_stats = wave_month_year_raw[['Hmax', 'Peak Direction', 'SST']].describe()
-        wave_month_year_stats_dict = wave_month_year_stats.to_dict()
-        logging.info('Job (stats) successfully finished.')
-        return wave_month_year_stats_dict
-    except ValueError:
-        logging.info('Job (stats) failed.')
-        return '''ERROR 400: Bad request. Use format '{"month": MM, "year": YYYY, "method": "<method>"}', 400'''
+    wave_month_year_raw = wave_df[(wave_df['Date/Time'].dt.month == month) & (wave_df['Date/Time'].dt.year == year)]
+    wave_month_year_stats = wave_month_year_raw[['Hmax', 'Peak Direction', 'SST']].describe()
+    wave_month_year_stats_dict = wave_month_year_stats.to_dict()
     
-def plot_height_vs_time(month, year):
+    logging.info('Job (stats) successfully finished.')
+    
+    return wave_month_year_stats_dict
+    
+def plot_height_vs_time(month: int, year: int) -> str:
     '''
     Plots 2D histogram of height vs. time for all the waves in a 
     user-specified time period. The function will utilize Matplotlib
@@ -98,13 +104,16 @@ def plot_height_vs_time(month, year):
     low tide throughout the year.
     
     Arguments: 
-        month_year (str): The month and year of the time period of which
-            the user is querying statistics. Formatted as "MM-YYYY"
+        month (int): The month of the query
+        year (int): The year of the query
     Returns: 
         output (str): Message either confirming the operation 
             either succeeded or failed.
+        
+        Also saves the plot to resdb database
     '''
     # TODO: @Gabriel
+    return f'Placeholder output: {month}-{year}.'
     
 if __name__ == '__main__':
     for _ in range(15):
