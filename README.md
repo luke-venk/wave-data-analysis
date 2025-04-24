@@ -80,7 +80,7 @@ If the inputted ID is valid, all the data will be output in a JSON-formatted lis
 To create a new job, execute the following POST command. Note that this command will return the genes who were approved in the given time frame. Please ensure both years and the limit are integer values:  
 ```curl localhost:5000/jobs -X POST -d '{"month": MM, "year": YYYY, "method": "<method>"}' -H "Content-Type: application/json"```  
 For example:  
-```curl localhost:5000/jobs -X POST -d '{"start_year": 2007, "end_year": 2009, "limit": 10}' -H "Content-Type: application/json"```  
+```curl localhost:5000/jobs -X POST -d '{"month": 1, "year": 2017, "method": "stats"}' -H "Content-Type: application/json"```  
 If the operation is successful, a message will be output confirming the job was created, and that its status is Pending. The status will be updated to "Complete" once the job is finished. Note that the operation will be successful if parameters are invalid. An example output would be the following:  
 ```Job a0987630-8db3-4cf1-8152-c5bed6ac6e65 successfully created. Status is Pending.```
 
