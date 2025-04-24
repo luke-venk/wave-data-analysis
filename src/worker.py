@@ -5,6 +5,10 @@ from jobs import update_job_status, get_job_by_id, save_results
 import os
 import time
 import logging
+import pandas as pd
+import json
+from datetime import datetime
+
 
 
 ########## CONFIG ##########
@@ -38,7 +42,7 @@ def pull_job(job_id: str):
     job_dict = get_job_by_id(job_id)  # Get dictionary of job information
     month = str(job_dict['month'])
     year = str(job_dict['year'])
-    method = job_dict['limit']
+    method = str(job_dict['method'])
     
     # Ensure not empty job
     if job_dict is None:
@@ -69,6 +73,22 @@ def wave_statistics(month, year):
         output (str): Summary statistics of the waves in that time period
     '''
     # TODO: @Gabriel
+    try:
+        month = int(month)
+        year = int(year)
+        keys = rd.keys('waves:*')
+        data = [json.loads(rd.get(key)) for key in keys] # Use keys to parse database and load the list of dictionaries
+        wave_df = pd.DataFrame(data)
+        wave_df['Date/Time'] = pd.to_datetime(wave_df['Date/Time'], format='%d/%m/%Y %H:%M') # Convert to datetime python object for easier parsing
+
+        wave_month_year_raw = wave_df[(wave_df['Date/Time'].dt.month == month) & (wave_df['Date/Time'].dt.year == year)]
+        wave_month_year_stats = wave_month_year_raw[['Hmax', 'Peak Direction', 'SST']].describe()
+        wave_month_year_stats_dict = wave_month_year_stats.to_dict()
+        return wave_month_year_stats_dict
+
+
+    except ValueError:
+        return '''ERROR 400: Bad request. Use format '{"month": MM, "year": YYYY, "method": "<method>"}', 400'''
     
 def plot_height_vs_time(month, year):
     '''

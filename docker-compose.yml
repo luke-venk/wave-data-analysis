@@ -1,3 +1,4 @@
+---
 services:
   redis-db:
     image: redis:7
@@ -20,8 +21,6 @@ services:
     environment:
       - REDIS_HOST_IP=redis-db
       - LOG_LEVEL=INFO
-    volumes:
-      - ./data:/app/data
     command: src/flask_api.py
 
   worker:
@@ -35,5 +34,4 @@ services:
       - REDIS_HOST_IP=redis-db
       - LOG_LEVEL=INFO
     command: src/worker.py
-
-
+...

@@ -1,3 +1,25 @@
+# Luke this is what you asked for:
+
+#### Format:
+```bash
+curl "http://localhost:5000/waves?epoch=MM/DD/YYYY%20HH:MM"
+```
+### Example: 
+```bash
+curl "http://localhost:5000/waves?epoch=09/12/2017%2018:30"
+```
+### Example Output:
+```
+{
+  "Date/Time": "09/12/2017 18:30",
+  "Hs": 1.318,
+  "Hmax": 2.11,
+  "Tz": 4.693,
+  "Tp": 5.356,
+  "Peak Direction": 23.0,
+  "SST": 20.95
+}
+```
 # Analysis of Oceanographic Wave Data from Buoys
 TODO: @Tavishka
 
