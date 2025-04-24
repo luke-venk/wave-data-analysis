@@ -73,6 +73,7 @@ def data() -> tuple[str, int]:
             200: Request succeeded
             201: Resource created
             204: No content
+            404: Data not found
             405: Method not allowed
     '''
     output = ''
@@ -82,18 +83,19 @@ def data() -> tuple[str, int]:
         if rd.dbsize() == 0:
             logging.debug('Database empty. Populating database now.')
             
-            # TODO @Tavishka
-            url = "https://www.kaggle.com/api/v1/datasets/download/jolasa/waves-measuring-buoys-data-mooloolaba?datasetVersionNumber=1"
+            url = 'https://www.kaggle.com/api/v1/datasets/download/jolasa/waves-measuring-buoys-data-mooloolaba?datasetVersionNumber=1'
             response = requests.get(url, allow_redirects=True)
             if response.status_code == 200:
                 with zipfile.ZipFile(BytesIO(response.content), 'r') as zip_ref:
                     file_name = zip_ref.namelist()[0]
                     with zip_ref.open(file_name) as f:
                         df = pd.read_csv(f)
+                logging.debug('Database populated successfully.')
             else:
+                logging.error('Failed to download dataset from Kaggle.')
                 return 'ERROR 404: Failed to download dataset from Kaggle.\n', 404
             
-            df.replace(99.99, pd.NA, inplace=True)  # sanitize
+            df.replace(99.99, pd.NA, inplace=True)  # Sanitize data
             records = df.to_dict(orient='records')
 
             for i, record in enumerate(records):
@@ -107,14 +109,16 @@ def data() -> tuple[str, int]:
             status_code = 200
     
     elif request.method == 'GET':
-        logging.debug('Printing all data now.')
-        
-        # TODO @Tavishka
-        keys = rd.keys('wave:*')
-        wave_data_list = [json.loads(rd.get(key)) for key in keys]
+        if rd.dbsize() == 0:
+            return 'ERROR 404: No data found in the database.\n', 404
+        else:
+            logging.debug('Printing all data now.')
+            
+            keys = rd.keys('wave:*')
+            wave_data_list = [json.loads(rd.get(key)) for key in keys]
 
-        # return jsonify(wave_data_list), 200
-        return wave_data_list, 200
+            # return jsonify(wave_data_list), 200
+            return wave_data_list, 200
 
     elif request.method == 'DELETE':
         logging.debug('Deleting database now.')
