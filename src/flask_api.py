@@ -329,21 +329,11 @@ def get_job_results(job_id: str) -> tuple[str, int]:
         else:
             job_dict = get_job_by_id(jid=job_id)
             status = job_dict['status']
-            month = str(job_dict['month'])
-            year = str(job_dict['year'])
-            method = job_dict['method']
             
             if status == 'Completed':
                 logging.debug('Printing job results to user.')
                 results = get_results_by_id(job_id)
-                
-                # TODO: @Luke
-                if method == 'stats':
-                    pass
-                elif method == 'plot':
-                    pass
-                
-                status_code = 200
+                return f'{results}\n', 200
             else:
                 logging.debug("Job's not finished. Job finished? I don't think so.\n-Kobe Bryant")
                 output = 'The job has not been finished yet. Please try again in a few seconds.\n'
