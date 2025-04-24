@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from redis import Redis
 from hotqueue import HotQueue
 import os
@@ -95,11 +95,16 @@ def data() -> tuple[str, int]:
                 logging.error('Failed to download dataset from Kaggle.')
                 return 'ERROR 404: Failed to download dataset from Kaggle.\n', 404
             
-            df.replace(99.99, pd.NA, inplace=True)  # Sanitize data
-            records = df.to_dict(orient='records')
-
-            for i, record in enumerate(records):
-                rd.set(f"wave:{i}", json.dumps(record))
+            # Clean and format
+            df.replace(99.99, pd.NA, inplace=True)  
+            
+            # Store in Redis using the timestamp as the key
+            # The other colums will be the value
+            rd_keys = df.iloc[:, 0]
+            rd_values = df.iloc[:, 1:]
+            
+            for key, row in zip(rd_keys, rd_values.to_dict(orient='records')):
+                rd.set(key, json.dumps(row))
             
             output = '201: Database has been successfully loaded with data.'
             status_code = 201
@@ -113,12 +118,11 @@ def data() -> tuple[str, int]:
             return 'ERROR 404: No data found in the database.\n', 404
         else:
             logging.debug('Printing all data now.')
+            all_data = {}
+            for key in rd.keys():
+                all_data[key.decode()] = json.loads(rd.get(key))
             
-            keys = rd.keys('wave:*')
-            wave_data_list = [json.loads(rd.get(key)) for key in keys]
-
-            # return jsonify(wave_data_list), 200
-            return wave_data_list, 200
+            return jsonify(all_data), 200
 
     elif request.method == 'DELETE':
         logging.debug('Deleting database now.')
