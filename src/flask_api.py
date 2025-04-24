@@ -236,9 +236,13 @@ def jobs() -> tuple[str, int]:
         
         # Ensure user input a valid month and year value
         if not (1 <= month <= 12):  
-            return 'ERROR 400: Bad request. Please ensure you input a valid value for "month".\n', 400
-        if not (1900 <= year <= 2100):  
-            return 'ERROR 400: Bad request. Please ensure you input a valid value for "year".\n', 400
+            return 'ERROR 400: Bad request. Please ensure you input a month between 1 and 12.\n', 400
+        if not (2017 <= year <= 2019):  
+            return 'ERROR 400: Bad request. Please ensure you input a year between 2017 and 2019.\n', 400
+        
+        # Ensure user inputs a valid method
+        if method not in ['stats', 'plot']:
+            return 'ERROR 400: Bad request. Please ensure your method is either "stats" or "plot".\n', 400
         
         # Create new job with a UUID and store as dictionary
         job_dict = add_job(month, year, method)  # Status will be Pending
@@ -290,9 +294,9 @@ def get_job_info(job_id: str) -> tuple[str, int]:
             output = 'Here is all the information related to the job you requested: \n'
             output += '  Job ID:        ' + job_dict['id'] + '\n'
             output += '  Status:        ' + job_dict['status'] + '\n'
-            output += '  Month:    ' + str(job_dict['month']) + '\n'
-            output += '  Year:     ' + str(job_dict['year']) + '\n'
-            output += '  Method:         ' + job_dict['method'] + '\n'
+            output += '  Month:         ' + str(job_dict['month']) + '\n'
+            output += '  Year:          ' + str(job_dict['year']) + '\n'
+            output += '  Method:        ' + job_dict['method'].capitalize() + '\n'
             status_code = 200
             return output, status_code
     else:
