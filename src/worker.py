@@ -105,7 +105,7 @@ def wave_statistics(month: int, year: int) -> str:
     sea_temp_stats = wave_df['SST'].describe()
     wave_month_year_stats_dict = {"Max Wave Height From Period Stats (m)": hmax_stats.to_dict(),
                                       "Peak Direction From Period Stats (degrees)": peak_direction_stats.to_dict(),
-                                      "Sea Surface Temperature From Period Stats (C)": sea_temp_stats.to_dict()}
+                                      "Sea Surface Temperature From Period Stats (degrees C)": sea_temp_stats.to_dict()}
         
     
     logging.info('Job (stats) successfully finished.')
