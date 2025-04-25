@@ -97,6 +97,7 @@ def data() -> tuple[str, int]:
             
             # Clean and format
             df.replace(99.99, pd.NA, inplace=True)  
+            df.replace(-99.99, pd.NA, inplace=True)
             # Sort by timestamp
             df.sort_values(by=df.columns[0], inplace=True) 
 
@@ -346,6 +347,25 @@ def get_job_results(job_id: str) -> tuple[str, int]:
                 status_code = 202
                 
             return output, status_code
+    else:
+        return 'ERROR 405: Method not allowed.\n', 405
+
+@app.route('/keys', methods=['GET'])
+def get_keys() -> tuple[str, int]:
+    '''
+    Returns a list of all the keys in the Redis database.
+    
+    Arguments: None
+    Returns:
+        keys (str): A list of all the keys in the database
+        status code (int):
+            200: Request succeeded
+            404: Not found
+            405: Method not allowed
+    '''
+    if request.method == 'GET':
+        keys = rd.keys()
+        return jsonify([key.decode('utf-8') for key in keys]), 200
     else:
         return 'ERROR 405: Method not allowed.\n', 405
         
