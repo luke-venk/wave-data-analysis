@@ -83,14 +83,30 @@ def wave_statistics(month: int, year: int) -> str:
         output (str): Summary statistics of the waves in that time period
     '''
     # TODO: @Gabriel
-    keys = rd.keys('waves:*')
-    data = [json.loads(rd.get(key)) for key in keys] # Use keys to parse database and load the list of dictionaries
-    wave_df = pd.DataFrame(data)
-    wave_df['Date/Time'] = pd.to_datetime(wave_df['Date/Time'], format='%d/%m/%Y %H:%M') # Convert to datetime python object for easier parsing
+    key_pattern = f"{month:02d}/*/{year} *"
 
-    wave_month_year_raw = wave_df[(wave_df['Date/Time'].dt.month == month) & (wave_df['Date/Time'].dt.year == year)]
-    wave_month_year_stats = wave_month_year_raw[['Hmax', 'Peak Direction', 'SST']].describe()
-    wave_month_year_stats_dict = wave_month_year_stats.to_dict()
+    filtered_keys = rd.keys(key_pattern)
+    
+    results = {}
+
+    for key in filtered_keys:
+        key = key.decode('utf-8')  # Decode the byte string to a regular string
+        data = rd.get(key)
+        if data is not None:
+            data = json.loads(data.decode('utf-8'))
+            results[key] = data
+
+
+
+    wave_df = pd.DataFrame.from_dict(results)
+    wave_df = wave_df.transpose()
+    hmax_stats = wave_df['Hmax'].describe()
+    peak_direction_stats = wave_df['Peak Direction'].describe()
+    sea_temp_stats = wave_df['SST'].describe()
+    wave_month_year_stats_dict = {"Max Wave Height From Period Stats (m)": hmax_stats.to_dict(),
+                                      "Peak Direction From Period Stats (degrees)": peak_direction_stats.to_dict(),
+                                      "Sea Surface Temperature From Period Stats (C)": sea_temp_stats.to_dict()}
+        
     
     logging.info('Job (stats) successfully finished.')
     
