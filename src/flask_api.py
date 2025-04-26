@@ -45,6 +45,7 @@ def help() -> tuple[str, int]:
     Describes all routes within the app with short descriptions.
     '''
     # TODO: @Gabriel
+    return "This is the help route. Available endpoints: /data, /waves, /jobs, etc.", 200
 
 @app.route('/data', methods=['POST', 'GET', 'DELETE'])
 def data() -> tuple[str, int]:
