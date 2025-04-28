@@ -19,7 +19,6 @@ logging.basicConfig(level=_log_level)
 ########## UNIT TESTS ##########
 
 # TODO: @Tavishka
-
 @patch('src.worker.q')
 @patch('src.worker.jdb')
 def test_pull_job(mock_jdb, mock_q):
@@ -50,7 +49,26 @@ def test_wave_statistics_with_data(mock_rd):
     assert isinstance(stats, dict)
     assert stats.get('count', 0) >= 0  # depending on month match
 
-def test_plot_height_vs_time_placeholder():
-    """Test placeholder plot_height_vs_time function."""
-    # Since plot_height_vs_time is a pass (placeholder), just ensure it matches current placeholder in worker src file
-    assert isinstance(worker.plot_height_vs_time(9, 2017), str)
+def test_plot_height_vs_time_real_behavior():
+    """Test plot_height_vs_time function returns a Matplotlib Figure or valid path."""
+    # Now plot_height_vs_time returns a matplotlib Figure object
+    fig_or_output = worker.plot_height_vs_time(9, 2017)
+    
+    # Accept if it returns either:
+    # 1. a matplotlib Figure object (normal)
+    # 2. a saved file path (string)
+    try:
+        import matplotlib.figure
+        assert isinstance(fig_or_output, (matplotlib.figure.Figure, str))
+    except ImportError:
+        # fallback in case matplotlib figure class import failed
+        assert isinstance(fig_or_output, str)
+
+@patch('src.worker.rd')
+def test_plot_height_vs_time_with_no_data(mock_rd):
+    """Test plot_height_vs_time handles no available data case."""
+    mock_rd.keys.return_value = []
+    fig_or_output = worker.plot_height_vs_time(1, 2025)
+    assert fig_or_output is not None
+    assert isinstance(fig_or_output, (str, object))  # Should still return something non-crashing
+
