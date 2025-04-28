@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from redis import Redis
 from hotqueue import HotQueue
 import os
@@ -10,6 +10,8 @@ from datetime import datetime
 import zipfile
 from io import BytesIO
 from jobs import add_job, get_job_by_id, get_results_by_id
+from worker import plot_height_vs_time
+from matplotlib import pyplot as plt
 
 
 ########## CONFIG ##########
@@ -351,24 +353,24 @@ def get_job_results(job_id: str) -> tuple[str, int]:
     else:
         return 'ERROR 405: Method not allowed.\n', 405
 
-@app.route('/keys', methods=['GET'])
-def get_keys() -> tuple[str, int]:
-    '''
-    Returns a list of all the keys in the Redis database.
-    
-    Arguments: None
-    Returns:
-        keys (str): A list of all the keys in the database
-        status code (int):
-            200: Request succeeded
-            404: Not found
-            405: Method not allowed
-    '''
-    if request.method == 'GET':
-        keys = rd.keys()
-        return jsonify([key.decode('utf-8') for key in keys]), 200
-    else:
-        return 'ERROR 405: Method not allowed.\n', 405
-        
+@app.route('/download/<string:job_id>', methods=['GET'])
+def download(job_id):
+    path = '/output.png'
+#    logging.debug("Path: " + path)
+#    with open(path,'wb') as f:
+#        f.write(resdb.hget(job_id, 'image'))
+    job_dict = get_job_by_id(job_id) 
+    month = job_dict['month']
+    year = job_dict['year']
+    output = plot_height_vs_time(month, year)
+    hist = plt.hist(output['Hmax'], bins=50)
+    plot_title = f'2D Histogram of Height for {month:02d}/{year}'
+    plt.title(plot_title)
+    plt.xlabel('Height (m)')
+    plt.ylabel('Frequency')
+    plt.savefig('/height_histogram.png')
+    return send_file('/height_histogram.png',mimetype='image/png', as_attachment=True)
+
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

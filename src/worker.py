@@ -8,6 +8,7 @@ import logging
 import pandas as pd
 import json
 from datetime import datetime
+import matplotlib.pyplot as plt
 
 
 
@@ -61,6 +62,20 @@ def pull_job(job_id: str):
         output = wave_statistics(month, year)
     elif method == 'plot':
         output = plot_height_vs_time(month, year)
+        hist = plt.hist(output['Hmax'], bins=50)
+        plot_title = f'2D Histogram of Height for {month:02d}/{year}'
+        plt.title(plot_title)
+        plt.xlabel('Height (m)')
+        plt.ylabel('Frequency')
+        plt.savefig('/height_histogram.png')
+        logging.debug('Histogram saved to /height_histogram.png')
+        with open('/height_histogram.png', 'rb') as f:
+            output = f.read()
+
+        resdb.hset(job_id, 'image', output)    
+        update_job_status(job_id, status='Completed')
+        return
+
     else:
         logging.error('ERROR: Invalid method for request. Should be "stats" or "plot".')
         return
@@ -129,7 +144,24 @@ def plot_height_vs_time(month: int, year: int) -> str:
         Also saves the plot to resdb database
     '''
     # TODO: @Gabriel
-    return f'Placeholder output: {month}-{year}.'
+    key_pattern = f"{month:02d}/*/{year} *"
+
+    filtered_keys = rd.keys(key_pattern)
+    
+    results = {}
+
+    for key in filtered_keys:
+        key = key.decode('utf-8')  # Decode the byte string to a regular string
+        data = rd.get(key)
+        if data is not None:
+            data = json.loads(data.decode('utf-8'))
+            results[key] = data
+        
+    wave_df = pd.DataFrame.from_dict(results)
+    wave_df = wave_df.transpose()
+    return wave_df
+
+    return hist
     
 if __name__ == '__main__':
     for _ in range(15):
