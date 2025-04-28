@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from redis import Redis
 from hotqueue import HotQueue
 import os
@@ -350,24 +350,14 @@ def get_job_results(job_id: str) -> tuple[str, int]:
     else:
         return 'ERROR 405: Method not allowed.\n', 405
 
-@app.route('/keys', methods=['GET'])
-def get_keys() -> tuple[str, int]:
-    '''
-    Returns a list of all the keys in the Redis database.
-    
-    Arguments: None
-    Returns:
-        keys (str): A list of all the keys in the database
-        status code (int):
-            200: Request succeeded
-            404: Not found
-            405: Method not allowed
-    '''
-    if request.method == 'GET':
-        keys = rd.keys()
-        return jsonify([key.decode('utf-8') for key in keys]), 200
-    else:
-        return 'ERROR 405: Method not allowed.\n', 405
-        
+@app.route('/download/<string:job_id>', methods=['GET'])
+def download(job_id):
+    path = 'output.png'
+    logging.debug("Path: " + path)
+    with open('path','wb') as f:
+        f.write(resdb.hget(job_id, 'image'))
+    return send_file(path,mimetype='image/png', as_attachment=True)
+
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
