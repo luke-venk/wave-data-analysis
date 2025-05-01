@@ -142,7 +142,6 @@ def data() -> tuple[str, int]:
 
 @app.route('/waves', methods=['GET'])
 def get_closest_wave() -> tuple[str, int]:
-    epoch = request.args.get("epoch")
     '''
     Returns JSON-formatted dictionary of the data corresponding
     to the wave data entry closest in time to the input epoch.
@@ -157,14 +156,13 @@ def get_closest_wave() -> tuple[str, int]:
             400: Bad request
             404: Data not found
     '''
+    epoch = request.args.get("epoch")
     if rd.dbsize() == 0:
         return 'ERROR 404: No data found in the database.\n', 404
-    
-    # TODO: @Tavishka
     try:
         input_time = datetime.strptime(epoch, "%m/%d/%Y %H:%M")
             
-        keys = rd.keys("wave:*")
+        keys = rd.keys()
         if not keys:
             return "ERROR 404: No wave data entries found.\n", 404
             
@@ -326,6 +324,7 @@ def get_job_results(job_id: str) -> tuple[str, int]:
         status code (int):
             200: Request succeeded
             202: Request accepted but still in progress
+            303: See other
             404: Not found
             405: Method not allowed
     '''
@@ -338,16 +337,18 @@ def get_job_results(job_id: str) -> tuple[str, int]:
             return '404: Job not found. Please ensure you enter a valid job ID.\n', 404
         else:
             job_dict = get_job_by_id(jid=job_id)
-            status = job_dict['status']
             
-            if status == 'Completed':
-                logging.debug('Printing job results to user.')
-                results = get_results_by_id(job_id)
-                return f'{results}\n', 200
-            else:
-                logging.debug("Job's not finished. Job finished? I don't think so.\n-Kobe Bryant")
-                output = 'The job has not been finished yet. Please try again in a few seconds.\n'
-                status_code = 202
+            if job_dict['method'] == 'stats':
+                if job_dict['status'] == 'Completed':
+                    logging.debug('Printing job results to user.')
+                    results = get_results_by_id(job_id)
+                    return f'{results}\n', 200
+                else:
+                    logging.debug("Job's not finished. Job finished? I don't think so.\n-Kobe Bryant")
+                    output = 'The job has not been finished yet. Please try again in a few seconds.\n'
+                    status_code = 202
+            elif job_dict['method'] == 'plot':
+                return "The job you are looking for is a 'plot' method, so use the /download route.\n", 302 
                 
             return output, status_code
     else:
@@ -355,22 +356,37 @@ def get_job_results(job_id: str) -> tuple[str, int]:
 
 @app.route('/download/<string:job_id>', methods=['GET'])
 def download(job_id):
-    path = '/output.png'
-#    logging.debug("Path: " + path)
-#    with open(path,'wb') as f:
-#        f.write(resdb.hget(job_id, 'image'))
-    job_dict = get_job_by_id(job_id) 
-    month = job_dict['month']
-    year = job_dict['year']
-    output = plot_height_vs_time(month, year)
-    hist = plt.hist(output['Hmax'], bins=50)
-    plot_title = f'2D Histogram of Height for {month:02d}/{year}'
-    plt.title(plot_title)
-    plt.xlabel('Height (m)')
-    plt.ylabel('Frequency')
-    plt.savefig('/height_histogram.png')
-    return send_file('/height_histogram.png',mimetype='image/png', as_attachment=True)
-
+    '''
+    Given a job ID, downloads the plot of that specific job. 
+    
+    Argument:
+        job_id (str): The job's ID
+    Returns:
+        output (str): The results of the job
+        status code (int):
+            200: Request succeeded
+            202: Request accepted but still in progress
+            404: Not found
+            405: Method not allowed
+    '''
+    # First, ensure job exists
+    if job_id not in [key.decode('utf-8') for key in jdb.keys()]:
+        return '404: Job not found. Please ensure you enter a valid job ID.\n', 404
+    else:
+        job_dict = get_job_by_id(job_id)
+        
+        # Second, ensure the job has completed
+        if job_dict['status'] != 'Completed':
+            return f'Job {job_id} has not completed yet.', 202
+        
+        # Third, ensure that the job actually had the method "plot"
+        if job_dict['method'] == 'plot':
+            file_path = f'/plots/histogram_{job_id}.png'
+            with open(file_path, 'wb') as f:
+                f.write(resdb.hget(job_id, 'plot'))
+            return send_file(file_path, mimetype='image/png', as_attachment=True), 200
+        else:
+            return "This job's method was not plot.", 405
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
