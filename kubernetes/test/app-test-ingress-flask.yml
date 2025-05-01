@@ -8,7 +8,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: "wave-data-analysis-test.coe332.tacc.cloud"
+    - host: "wave-test.coe332.tacc.cloud"
       http: 
         paths: 
           - pathType: Prefix
