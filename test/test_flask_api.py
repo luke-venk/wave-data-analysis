@@ -17,8 +17,6 @@ logging.basicConfig(level=_log_level)
 
 ########## UNIT TESTS ##########
 
-# TODO: @Tavishka
-
 @pytest.fixture
 def client():
     with app.test_client() as client:

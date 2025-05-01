@@ -18,7 +18,6 @@ logging.basicConfig(level=_log_level)
 
 ########## UNIT TESTS ##########
 
-# TODO: @Tavishka
 @patch('jobs.jdb')
 @patch('jobs.q')
 def test_add_job(mock_q, mock_jdb):
