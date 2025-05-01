@@ -18,7 +18,7 @@ spec:
       containers:
         - name: redis
           image: redis:7
-          command: ["--save", "1", "1"]
+          command: ["redis-server", "--save", "1", "1"]
           volumeMounts:
             - name: app-test-pvc-redis
               mountPath: /data
