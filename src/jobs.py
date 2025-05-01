@@ -98,13 +98,16 @@ def get_results_by_id(jid: str) -> list:
     logging.debug(f'Fetching results for job {jid}')
     return json.loads(resdb.get(jid))  # JSON to Python list
 
-def save_results(jid: str, results: list) -> None:
+def save_results_stats(jid: str, stats: dict) -> None:
     '''
-    Saves results in the Redis database as a JSON formatted string.
+    For the stats job, saves stats dict in the Redis database as a JSON formatted string.
     '''
-    if results is None:
-        resdb.set(jid, 'Test')
-        logging.debug(f'Job {jid}, which is a test, saved to database.')
-    else:
-        resdb.set(jid, json.dumps(results))
-        logging.debug(f'Job {jid} results saved to database.')
+    resdb.set(jid, json.dumps(stats))
+    logging.debug(f'Job (stats) {jid} results saved to database.')
+    
+def save_results_plot(jid: str, plot_file: bytes) -> None:
+    '''
+    For the plot job, saves plot image in the Redis database as hashed file.
+    '''
+    resdb.hset(jid, 'plot', plot_file)
+    logging.debug(f'Job (plot) {jid} results saved to database.')
