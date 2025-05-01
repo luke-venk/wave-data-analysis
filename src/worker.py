@@ -1,5 +1,5 @@
 from redis import Redis
-from redis.exceptions import BusyLoadingError
+from redis.exceptions import BusyLoadingError, ConnectionError
 from hotqueue import HotQueue
 from jobs import update_job_status, get_job_by_id, save_results_stats, save_results_plot
 import os
@@ -13,8 +13,23 @@ import matplotlib.pyplot as plt
 
 ########## CONFIG ##########
 # Environment variables
-_redis_ip = os.environ.get('REDIS_HOST_IP')  # Environment variable for Redis IP address
+_redis_ip = os.environ.get('REDIS_HOST_IP', 'redis-db')  # Environment variable for Redis IP address
 _redis_port = 6379
+
+# Wait for Redis to be available before continuing
+for attempt in range(10):
+    try:
+        logging.debug(f'Trying to connect to Redis at {_redis_ip}:{_redis_port} (attempt {attempt+1})')
+        r = Redis(host=_redis_ip, port=_redis_port)
+        r.ping()
+        logging.debug('Connected to Redis!')
+        break
+    except ConnectionError:
+        logging.debug('Redis not available yet, retrying...')
+        time.sleep(2)
+else:
+    logging.error('Redis not available after 10 tries, exiting.')
+    exit(1)
 
 # Database configuration
 rd = Redis(host=_redis_ip, port=_redis_port, db=0)  # Database for wave data
