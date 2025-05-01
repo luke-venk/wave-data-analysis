@@ -147,6 +147,7 @@ def plot_height_vs_time(month: int, year: int, job_id: str) -> str:
             results[key] = data
         
     wave_df = pd.DataFrame.from_dict(results).transpose()
+    # TODO: @Gabriel - please make it so the range isn't from like -100 to 0 m in height
     plt.hist(wave_df['Hmax'], bins=50)
     plt.xlabel('Height (m)')
     plt.ylabel('Frequency')

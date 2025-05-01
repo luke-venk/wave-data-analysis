@@ -46,7 +46,7 @@ def help() -> tuple[str, int]:
     '''
     Describes all routes within the app with short descriptions.
     '''
-    # TODO: @Gabriel
+    # TODO: @Gabriel - please complete this, and add newline \n to end of output
     return "This is the help route. Available endpoints: /data, /waves, /jobs, etc.", 200
 
 @app.route('/data', methods=['POST', 'GET', 'DELETE'])
@@ -156,12 +156,14 @@ def get_closest_wave() -> tuple[str, int]:
             400: Bad request
             404: Data not found
     '''
+    # TODO: @Tavishka, please replace all "" with '' to match style
     epoch = request.args.get("epoch")
     if rd.dbsize() == 0:
         return 'ERROR 404: No data found in the database.\n', 404
     try:
         input_time = datetime.strptime(epoch, "%m/%d/%Y %H:%M")
-            
+        
+        # TODO: @Tavishka, I fixed this line here since we changed the keys, but new bugs arise now
         keys = rd.keys()
         if not keys:
             return "ERROR 404: No wave data entries found.\n", 404
@@ -188,7 +190,7 @@ def get_closest_wave() -> tuple[str, int]:
                     
         if closest_record:
             return json.dumps(closest_record), 200
-        else:
+        else:  # TODO: @Tavishka, this happens when I query so please fix this
             return "ERROR 404: No valid timestamps found in data.\n", 404
         
     except ValueError:
@@ -342,6 +344,7 @@ def get_job_results(job_id: str) -> tuple[str, int]:
                 if job_dict['status'] == 'Completed':
                     logging.debug('Printing job results to user.')
                     results = get_results_by_id(job_id)
+                    # TODO: @Gabriel - could you please make it so it prints out in a more readable fashion?
                     return f'{results}\n', 200
                 else:
                     logging.debug("Job's not finished. Job finished? I don't think so.\n-Kobe Bryant")
