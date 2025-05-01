@@ -52,11 +52,8 @@ git clone git@github.com:luke-venk/wave-data-analysis.git
 cd wave-data-analysis
 ```
 
-We created a Makefile that automates these commands, but since our Makefile includes targets for both Docker Compose and Kubernetes, please edit the first line of the Makefile as such:  
-```all: dc-down dc-up```  
-
-Then, run the following command to stop all running docker containers and restart the new containers:  
-```make```
+To use Docker Compose, we automated the build instructions in the Makefile. Please run the following command:  
+```make docker```  
 
 Once the containers are up and running, open a new terminal, and refer to the following sections to either run our tests or run any of the Flask API endpoints.
 
@@ -214,22 +211,27 @@ curl localhost:5000/download/0384b7fc-facc-4704-b781-9bd8dc7bb142 --output outpu
 We also support using our application on a Kubernetes cluster hosted on a Texas Advanced Computing Center (TACC) supercomputer. We will provide the instructions for deploying the Kubernetes files, but once the files have been deployed, any user connected to the internet can use the application.
 
 ## Deploying our Application
-The user can deploy the Kubernetes configuration files for either the test or production environments.
-
-### Kubernetes Test Environments
-```bash
-kubectl apply -f kubernetes/test/
-```
-- Deploys minimal resource versions of Flask, Redis, and Worker services for testing.
+The user can deploy the Kubernetes configuration files for either the test or production environments. In our project, we were instructed to make the two have no functional difference. Nominally, the test environment is used for developers to experimentat and debug, while the prod environment is where real users interact with the application. For our purposes, they simply occupy different namespaces and are accessible at different URLs.
 
 ### Kubernetes Production Environments
 ```bash
-kubectl apply -f kubernetes/prod/
+make
 ```
-- Deploys full production-grade services, persistent Redis storage (PVC), and ingress controllers.
+OR alternatively
+```bash
+make prod
+```
+
+### Kubernetes Test Environments
+```bash
+make test
+```
 
 ## Testing our Application
-TODO
+To test our application with pytest, run the following command, replacing <flask-pod-name> with the name of the Flask pod. This works for either prod or test.
+```bash
+kubectl exec -it <flask-pod-name> -- pytest
+```
 
 ## Using our Application
 Here are the following Flask API endpoints the user can use to retrieve information from our application. Note that any user connected to the Internet can use these routes.
@@ -237,9 +239,14 @@ Here are the following Flask API endpoints the user can use to retrieve informat
 ### 1. `/help` (GET)
 - Returns a description of available routes and their usage.
 
-**Usage:**
+**Usage (Prod):**
 ```bash
-curl wave-data-analysis-test.coe332.tacc.cloud/help
+curl wave.coe332.tacc.cloud/help
+```
+
+**Usage (Test):**
+```bash
+curl wave-test.coe332.tacc.cloud/help
 ```
 
 ---
@@ -249,42 +256,62 @@ curl wave-data-analysis-test.coe332.tacc.cloud/help
 - Populates Redis with fresh wave data from Kaggle.
 - If database is already populated, it will skip reloading.
 
-**Usage:**
+**Usage (Prod):**
 ```bash
-curl -X POST wave-data-analysis-test.coe332.tacc.cloud/data
+curl -X POST wave.coe332.tacc.cloud/data
+```
+
+**Usage (Test):**
+```bash
+curl -X POST wave-test.coe332.tacc.cloud/data
 ```
 
 #### (GET)
 - Retrieves all wave data currently stored in Redis.
 
-**Usage:**
+**Usage (Prod):**
 ```bash
-curl wave-data-analysis-test.coe332.tacc.cloud/data
+curl wave.coe332.tacc.cloud/data
+```
+
+**Usage (Test):**
+```bash
+curl wave-test.coe332.tacc.cloud/data
 ```
 
 #### (DELETE)
 - Clears all wave data from Redis.
 
-**Usage:**
+**Usage (Prod):**
 ```bash
-curl -X DELETE wave-data-analysis-test.coe332.tacc.cloud/data
+curl -X DELETE wave.coe332.tacc.cloud/data
+```
+
+**Usage (Test):**
+```bash
+curl -X DELETE wave-test.coe332.tacc.cloud/data
 ```
 
 ---
 
 ### 3. `/waves?epoch=<timestamp>` (GET)
 - Fetches the wave measurement record closest to a provided timestamp.
-- Timestamp format: `MM/DD/YYYY HH:MM`
-- Note: For the space between `YYYY` and `HH`, you must use `%20` as the URL-encoded version of a space character
+- Timestamp format: `MM/DD/YYYY hh:mm`
+- Note: For the space between `YYYY` and `hh`, you must use `%20` as the URL-encoded version of a space character
 
 **Usage:**
 ```bash
-curl "wave-data-analysis-test.coe332.tacc.cloud/waves?epoch=MM/DD/YYYY%20HH:MM"
+curl "<hostname>.coe332.tacc.cloud/waves?epoch=<MM>/<DD>/<YYYY>%20<hh>:<mm>"
 ```
 
-**Example:**
+**Example (Prod):**
 ```bash
-curl "wave-data-analysis-test.coe332.tacc.cloud/waves?epoch=09/12/2017%2018:30"
+curl "wave.coe332.tacc.cloud/waves?epoch=05/16/2017%2011:30"
+```
+
+**Example (Test):**
+```bash
+curl "wave-test.coe332.tacc.cloud/waves?epoch=10/06/2018%2008:00"
 ```
 
 ---
@@ -296,25 +323,30 @@ curl "wave-data-analysis-test.coe332.tacc.cloud/waves?epoch=09/12/2017%2018:30"
 
 **Usage:**
 ```bash
-curl -X POST wave-data-analysis-test.coe332.tacc.cloud/jobs -H "Content-Type: application/json" -d '{"month": MM, "year": YYYY, "method": method}'
+curl -X POST <hostname>.coe332.tacc.cloud/jobs -H "Content-Type: application/json" -d '{"month": <MM>, "year": <YYYY>, "method": <method>}'
 ```
 
-**Example 1:**
+**Example 1 (Prod):**
 ```bash
-curl -X POST wave-data-analysis-test.coe332.tacc.cloud/jobs -H "Content-Type: application/json" -d '{"month": 9, "year": 2017, "method": "stats"}'
+curl -X POST wave.coe332.tacc.cloud/jobs -H "Content-Type: application/json" -d '{"month": 9, "year": 2017, "method": "stats"}'
 ```
 
-**Example 2:**
+**Example 2 (Test):**
 ```bash
-curl -X POST wave-data-analysis-test.coe332.tacc.cloud/jobs -H "Content-Type: application/json" -d '{"month": 2, "year": 2018, "method": "plot"}'
+curl -X POST wave-test.coe332.tacc.cloud/jobs -H "Content-Type: application/json" -d '{"month": 9, "year": 2017, "method": "plot"}'
 ```
 
 #### (GET)
 - Lists all current jobs.
 
-**Usage:**
+**Usage (Prod):**
 ```bash
-curl wave-data-analysis-test.coe332.tacc.cloud/jobs
+curl wave.coe332.tacc.cloud/jobs
+```
+
+**Usage (Test):**
+```bash
+curl wave-test.coe332.tacc.cloud/jobs
 ```
 
 ---
@@ -324,12 +356,17 @@ curl wave-data-analysis-test.coe332.tacc.cloud/jobs
 
 **Usage:**
 ```bash
-curl wave-data-analysis-test.coe332.tacc.cloud/jobs/job_id
+curl <hostname>.coe332.tacc.cloud/jobs/<job_id>
 ```
 
-**Example:**
+**Example (Prod):**
 ```bash
-curl wave-data-analysis-test.coe332.tacc.cloud/jobs/0384b7fc-facc-4704-b781-9bd8dc7bb142
+curl wave.coe332.tacc.cloud/jobs/0384b7fc-facc-4704-b781-9bd8dc7bb142
+```
+
+**Example (Test):**
+```bash
+curl wave-test.coe332.tacc.cloud/jobs/0384b7fc-facc-4704-b781-9bd8dc7bb142
 ```
 
 ### 6. `/results/<jobid>` (GET)
@@ -337,12 +374,17 @@ curl wave-data-analysis-test.coe332.tacc.cloud/jobs/0384b7fc-facc-4704-b781-9bd8
 
 **Usage:**
 ```bash
-curl wave-data-analysis-test.coe332.tacc.cloud/results/jobid
+curl <hostname>.coe332.tacc.cloud/results/<jobid>
 ```
 
-**Example:**
+**Example (Prod):**
 ```bash
-curl wave-data-analysis-test.coe332.tacc.cloud/results/0384b7fc-facc-4704-b781-9bd8dc7bb142
+curl wave.coe332.tacc.cloud/results/0384b7fc-facc-4704-b781-9bd8dc7bb142
+```
+
+**Example (Test):**
+```bash
+curl wave-test.coe332.tacc.cloud/results/0384b7fc-facc-4704-b781-9bd8dc7bb142
 ```
 
 ### 7. `/download/<jobid>` (GET)
@@ -350,12 +392,16 @@ curl wave-data-analysis-test.coe332.tacc.cloud/results/0384b7fc-facc-4704-b781-9
 
 **Usage:**
 ```bash
-curl wave-data-analysis-test.coe332.tacc.cloud/download/jobid --output fileName.png
+curl <hostname>.coe332.tacc.cloud/download/<jobid> --output <fileName>.png
 ```
 
-**Example:**
+**Example (Prod):**
 ```bash
-curl wave-data-analysis-test.coe332.tacc.cloud/download/0384b7fc-facc-4704-b781-9bd8dc7bb142 --output output.png
+curl wave.coe332.tacc.cloud/download/0384b7fc-facc-4704-b781-9bd8dc7bb142 --output plot1.png
 ```
 
+**Example (Prod):**
+```bash
+curl wave-test.coe332.tacc.cloud/download/0384b7fc-facc-4704-b781-9bd8dc7bb142 --output plot2.png
+```
 ---
