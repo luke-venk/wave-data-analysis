@@ -17,11 +17,11 @@ spec:
     spec:
       containers:
         - name: worker
-          image: wave-data-analysis:1.0
+          image: lukevenk1/wave-data-analysis:1.0
           command: ["python", "src/worker.py"]
           env:
             - name: REDIS_HOST_IP
-              value: redis-db
+              value: app-test-service-redis
             - name: LOG_LEVEL
               value: INFO
 ...
