@@ -43,19 +43,26 @@ def index() -> tuple[str, int]:
 
 @app.route('/help', methods=['GET'])
 def help() -> tuple[str, int]:
-    '''
+    """
     Describes all routes within the app with short descriptions.
-    '''
-    return "This is the help route. Available endpoints: \n"  \
-        "/help : Prints available routes with a short decription \n" \
-        "/data [GET] : Prints all data currently stored in the redis database \n" \
-        "/data [POST] : Pulls current data from kaggle and loads into the redis database \n" \
-        "/data [DELETE] : Deletes data currently stored in the database \n" \
-        "/waves?<epoch> : Finds the closest data to a given epoch time formatted as a string \n" \
-        "/jobs : Prints all jobs active in the jobs database \n" \
-        "/jobs/<job_id> : Prints info for a specific job unique ID \n" \
-        "/results/<job_id> : Prints results for a specific job unique ID \n" \
-        "/download/<job_id> : Downloads the outplot plot for a specific job unique ID \n", 200 
+    """
+    help_text = """
+    Wave Data Analysis API - Available Endpoints:
+
+GET    /help               : Prints available routes with a short description
+GET    /data               : Retrieves all data currently stored in the Redis database
+POST   /data               : Pulls current data from Kaggle and loads it into the Redis database
+DELETE /data               : Deletes all data currently stored in the Redis database
+GET    /waves?epoch=<str>  : Finds the closest wave data entry to the given epoch time string
+GET    /jobs               : Lists all active jobs in the jobs database
+GET    /jobs/<job_id>      : Retrieves information for a specific job by unique ID
+GET    /results/<job_id>   : Retrieves results for a specific job by unique ID
+GET    /download/<job_id>  : Downloads the output plot for a specific job by unique ID
+"""
+    return (
+        help_text.strip(),
+        200
+    )
 
 @app.route('/data', methods=['POST', 'GET', 'DELETE'])
 def data() -> tuple[str, int]:
