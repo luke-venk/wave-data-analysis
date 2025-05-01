@@ -12,7 +12,7 @@ from io import BytesIO
 from jobs import add_job, get_job_by_id, get_results_by_id
 from worker import plot_height_vs_time
 from matplotlib import pyplot as plt
-
+from dateutil import parser
 
 ########## CONFIG ##########
 # Environment variables
