@@ -1,2 +1,3 @@
 *.rdb
 data/waves.csv
+output*.png
