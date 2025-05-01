@@ -89,7 +89,7 @@ GET    /jobs/<job_id>      : Retrieves information for a specific job by unique 
 GET    /results/<job_id>   : Retrieves results for a specific job by unique ID
 GET    /download/<job_id>  : Downloads the output plot for a specific job by unique ID
 """
-    return (help_text.strip(), 200)
+    return (help_text.strip() + '\n', 200)
 
 
 @app.route('/data', methods=['POST', 'GET', 'DELETE'])
