@@ -8,7 +8,7 @@ import logging
 
 ########## CONFIG ##########
 # Environment variables
-_redis_ip = os.environ.get('REDIS_HOST_IP')  # Environment variable for Redis IP address
+_redis_ip = os.environ.get('REDIS_HOST_IP', 'redis-db')  # Environment variable for Redis IP address
 _redis_port = 6379
 
 # Database configuration
