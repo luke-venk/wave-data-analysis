@@ -46,8 +46,16 @@ def help() -> tuple[str, int]:
     '''
     Describes all routes within the app with short descriptions.
     '''
-    # TODO: @Gabriel - please complete this, and add newline \n to end of output
-    return "This is the help route. Available endpoints: /data, /waves, /jobs, etc.", 200
+    return "This is the help route. Available endpoints: \n"  \
+        "/help : Prints available routes with a short decription \n" \
+        "/data [GET] : Prints all data currently stored in the redis database \n" \
+        "/data [POST] : Pulls current data from kaggle and loads into the redis database \n" \
+        "/data [DELETE] : Deletes data currently stored in the database \n" \
+        "/waves?<epoch> : Finds the closest data to a given epoch time formatted as a string \n" \
+        "/jobs : Prints all jobs active in the jobs database \n" \
+        "/jobs/<job_id> : Prints info for a specific job unique ID \n" \
+        "/results/<job_id> : Prints results for a specific job unique ID \n" \
+        "/download/<job_id> : Downloads the outplot plot for a specific job unique ID \n", 200 
 
 @app.route('/data', methods=['POST', 'GET', 'DELETE'])
 def data() -> tuple[str, int]:
@@ -344,6 +352,8 @@ def get_job_results(job_id: str) -> tuple[str, int]:
                 if job_dict['status'] == 'Completed':
                     logging.debug('Printing job results to user.')
                     results = get_results_by_id(job_id)
+                    results = json.loads(results)
+                    results = [results]
                     # TODO: @Gabriel - could you please make it so it prints out in a more readable fashion?
                     return f'{results}\n', 200
                 else:
