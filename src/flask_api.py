@@ -161,56 +161,45 @@ def get_closest_wave() -> tuple[str, int]:
     Returns JSON-formatted dictionary of the data corresponding
     to the wave data entry closest in time to the input epoch.
 
-    Arguments:
-        epoch (str): The epoch for which the closest wave
-            data will be returned. Formatted as "MM/DD/YYYY hh:mm"
+    Query parameter:
+        epoch (str): The target timestamp. Accepts formats like "MM/DD/YYYY HH:MM"
+    
     Returns:
-        output (str): JSON formatted list of the data corresponding to that wave
-        status code (int):
-            200: Request succeeded
-            400: Bad request
-            404: Data not found
+        JSON response of the closest wave record
     '''
-    # TODO: @Tavishka, please replace all "" with '' to match style
-    epoch = request.args.get("epoch")
+    epoch = request.args.get('epoch')
     if rd.dbsize() == 0:
         return 'ERROR 404: No data found in the database.\n', 404
-    try:
-        input_time = datetime.strptime(epoch, "%m/%d/%Y %H:%M")
 
-        # TODO: @Tavishka, I fixed this line here since we changed the keys, but new bugs arise now
+    try:
+        input_time = parser.parse(epoch)
         keys = rd.keys()
+
         if not keys:
-            return "ERROR 404: No wave data entries found.\n", 404
+            return 'ERROR 404: No wave data entries found.\n', 404
 
         closest_record = None
         min_time_diff = float('inf')
 
         for key in keys:
-            record = json.loads(rd.get(key))
-            record_time_str = record.get("Date/Time")
-            if not record_time_str:
-                continue
-
             try:
-                record_time = datetime.strptime(record_time_str, "%m/%d/%Y %H:%M")
+                record_time_str = key.decode()
+                record_time = parser.parse(record_time_str)
                 time_diff = abs((record_time - input_time).total_seconds())
 
                 if time_diff < min_time_diff:
                     min_time_diff = time_diff
-                    closest_record = record
-
-            except ValueError:
-                continue  # Skip invalid formats
+                    closest_record = json.loads(rd.get(key))
+            except Exception:
+                continue  # skip bad formats
 
         if closest_record:
-            return json.dumps(closest_record), 200
-        else:  # TODO: @Tavishka, this happens when I query so please fix this
-            return "ERROR 404: No valid timestamps found in data.\n", 404
+            return jsonify(closest_record), 200
+        else:
+            return 'ERROR 404: No valid timestamps found in data.\n', 404
 
-    except ValueError:
-        return "ERROR 400: Bad request. Use format 'MM/DD/YYYY HH:MM'.\n", 400
-
+    except Exception:
+        return 'ERROR 400: Bad request. Use format "MM/DD/YYYY HH:MM".\n', 400
 
 @app.route('/jobs', methods=['POST', 'GET'])
 def jobs() -> tuple[str, int]:
