@@ -1,0 +1,21 @@
+---
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: app-prod-ingress-flask
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: "wave.coe332.tacc.cloud"
+      http: 
+        paths: 
+          - pathType: Prefix
+            path: "/"
+            backend: 
+              service: 
+                name: app-prod-service-flask
+                port: 
+                  number: 5000
+...
