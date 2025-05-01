@@ -16,8 +16,9 @@ from dateutil import parser
 
 ########## CONFIG ##########
 # Environment variables
-_redis_ip = os.environ.get('REDIS_HOST_IP')  # Environment variable for Redis IP address
+_redis_ip = os.environ.get('REDIS_HOST_IP', 'redis-db')  # Environment variable for Redis IP address
 _redis_port = 6379
+_flask_port = 5000
 
 # Flask and database configuration
 app = Flask(__name__)
@@ -426,4 +427,4 @@ def download(job_id):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(host='0.0.0.0', port=_flask_port, debug=False)
