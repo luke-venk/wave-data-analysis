@@ -370,10 +370,9 @@ def get_job_results(job_id: str) -> tuple[str, int]:
                 if job_dict['status'] == 'Completed':
                     logging.debug('Printing job results to user.')
                     results = get_results_by_id(job_id)
-                    results = json.loads(results)
-                    results = [results]
-                    # TODO: @Gabriel - could you please make it so it prints out in a more readable fashion?
-                    return f'{results}\n', 200
+                    results = [results] if not isinstance(results, list) else results
+                    return jsonify(results), 200
+                    
                 else:
                     logging.debug(
                         "Job's not finished. Job finished? I don't think so.\n-Kobe Bryant"
