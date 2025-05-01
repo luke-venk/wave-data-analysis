@@ -9,6 +9,7 @@ import pandas as pd
 import json
 import time
 import zipfile
+import io
 from io import BytesIO
 from jobs import add_job, get_job_by_id, get_results_by_id
 from dateutil import parser
@@ -445,10 +446,12 @@ def download(job_id):
 
         # Third, ensure that the job actually had the method "plot"
         if job_dict['method'] == 'plot':
-            file_path = f'/plots/histogram_{job_id}.png'
-            with open(file_path, 'wb') as f:
-                f.write(resdb.hget(job_id, 'plot'))
-            return send_file(file_path, mimetype='image/png', as_attachment=True), 200
+            file_blob = resdb.hget(job_id, 'plot')
+            if not file_blob:
+                return '404: Plot not found.\n', 404
+            
+            return send_file(BytesIO(file_blob), mimetype='image/png', as_attachment=True, 
+                             download_name=f'histogram_{job_id}.png'), 200
         else:
             return "This job's method was not plot.", 405
 
