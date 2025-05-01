@@ -55,7 +55,7 @@ def test_update_job_status(mock_jdb):
 def test_save_results(mock_resdb):
     """Test the save_results function."""
     mock_resdb.set.return_value = True
-    result = jobs.save_results("1234", {"result": "data"})
+    result = jobs.save_results_stats("1234", {"result": "data"})
     assert result is None
     mock_resdb.set.assert_called_once_with("1234", '{"result": "data"}')
 

@@ -3,6 +3,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 import pytest
 import worker
+import jobs
 from unittest.mock import patch, MagicMock
 
 ########## CONFIG ##########
@@ -12,7 +13,7 @@ _log_level = os.environ.get('LOG_LEVEL')
 
 @patch('worker.get_job_by_id')
 @patch('worker.update_job_status')
-@patch('worker.save_results')
+@patch('worker.save_results_stats')
 def test_pull_job_logic(mock_save, mock_update, mock_get):
     """Test the core logic of pull_job without invoking the @q.worker decorator."""
     mock_get.return_value = {
@@ -25,9 +26,9 @@ def test_pull_job_logic(mock_save, mock_update, mock_get):
     result = worker.wave_statistics(9, 2017)
 
     job_id = "1234"
-    worker.update_job_status(job_id, "In Progress")
-    worker.save_results(job_id, result)
-    worker.update_job_status(job_id, "Completed")
+    jobs.update_job_status(job_id, "In Progress")
+    jobs.save_results_stats(job_id, result)
+    jobs.update_job_status(job_id, "Completed")
 
     mock_update.assert_called_with(job_id, "Completed")
     mock_save.assert_called_with(job_id, result)
@@ -61,13 +62,13 @@ def test_wave_statistics_with_data(mock_rd):
 def test_plot_height_vs_time_real_behavior(mock_rd):
     """Test plot_height_vs_time function returns a DataFrame."""
     fake_data = [
-        b'{"Date/Time": "09/12/2017 18:30", "Hs": 1.3}',
-        b'{"Date/Time": "09/12/2017 18:40", "Hs": 1.4}'
+        b'{"Date/Time": "09/12/2017 18:30", "Hs": 1.3, "Hmax": 1.5}',
+        b'{"Date/Time": "09/12/2017 18:40", "Hs": 1.4, "Hmax": 1.6}'
     ]
     mock_rd.keys.return_value = [b'wave:0', b'wave:1']
     mock_rd.get.side_effect = fake_data
 
-    fig_or_output = worker.plot_height_vs_time(9, 2017)
+    fig_or_output = worker.plot_height_vs_time(9, 2017, '1234')
 
     import pandas as pd
     assert isinstance(fig_or_output, pd.DataFrame)
