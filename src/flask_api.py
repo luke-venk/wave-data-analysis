@@ -176,7 +176,7 @@ def get_closest_wave() -> tuple[str, int]:
         keys = rd.keys()
 
         if not keys:
-            return 'ERROR 404: No wave data entries found.\n', 404
+            return 'ERROR 400: Missing required query parameter: epoch.\n', 400
 
         closest_record = None
         min_time_diff = float('inf')
