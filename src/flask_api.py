@@ -1,31 +1,58 @@
 from flask import Flask, request, jsonify, send_file
 from redis import Redis
+from redis.exceptions import ConnectionError
 from hotqueue import HotQueue
 import os
 import logging
 import requests
 import pandas as pd
 import json
-from datetime import datetime
+import time
 import zipfile
 from io import BytesIO
 from jobs import add_job, get_job_by_id, get_results_by_id
-from worker import plot_height_vs_time
-from matplotlib import pyplot as plt
 from dateutil import parser
 
 ########## CONFIG ##########
+app = Flask(__name__)
+
 # Environment variables
 _redis_ip = os.environ.get('REDIS_HOST_IP', 'redis-db')  # Environment variable for Redis IP address
 _redis_port = 6379
 _flask_port = 5000
 
 # Flask and database configuration
-app = Flask(__name__)
-rd = Redis(host=_redis_ip, port=_redis_port, db=0)  # Database for wave data
-q = HotQueue('queue', host=_redis_ip, port=_redis_port, db=1)  # Queue for job IDs
-jdb = Redis(host=_redis_ip, port=_redis_port, db=2)  # Database for jobs data
-resdb = Redis(host=_redis_ip, port=_redis_port, db=3)  # Database for job results data
+def connect_redis(db: int) -> Redis:
+    for attempt in range(10):
+        try:
+            client = Redis(host=_redis_ip, port=_redis_port, db=db)
+            client.ping()
+            logging.debug(f'DB {db} connected to Redis on attempt {attempt+1}')
+            return client
+        except ConnectionError as e:
+            logging.debug(f'DB {db} not ready (attempt {attempt+1})')
+            time.sleep(2)
+    logging.error(f'DB {db} not available after 10 attempts, exiting.')
+    exit(1)
+
+
+rd = connect_redis(0)  # Database for wave data
+jdb = connect_redis(2)  # Database for jobs data
+resdb = connect_redis(3)  # Database for job results data
+
+# Retry HotQueue separately
+for attempt in range(10):
+    try:
+        q = HotQueue('queue', host=_redis_ip, port=_redis_port, db=1)
+        q._HotQueue__redis.ping()
+        logging.debug('HotQueue is ready.')
+        break
+    except ConnectionError as e:
+        logging.debug(f'HotQueue Redis not ready (attempt {attempt+1})')
+        time.sleep(2)
+else:
+    logging.error('HotQueue Redis failed after 10 tries, exiting.')
+    exit(1)
 
 # Logging configuration
 _log_level = os.environ.get('LOG_LEVEL')  # Environment variable for logging level

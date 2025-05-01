@@ -16,26 +16,38 @@ import matplotlib.pyplot as plt
 _redis_ip = os.environ.get('REDIS_HOST_IP', 'redis-db')  # Environment variable for Redis IP address
 _redis_port = 6379
 
-# Wait for Redis to be available before continuing
-for attempt in range(10):
-    try:
-        logging.debug(f'Trying to connect to Redis at {_redis_ip}:{_redis_port} (attempt {attempt+1})')
-        r = Redis(host=_redis_ip, port=_redis_port)
-        r.ping()
-        logging.debug('Connected to Redis!')
-        break
-    except ConnectionError:
-        logging.debug('Redis not available yet, retrying...')
-        time.sleep(2)
-else:
-    logging.error('Redis not available after 10 tries, exiting.')
+# Flask and database configuration
+def connect_redis(db: int) -> Redis:
+    for attempt in range(10):
+        try:
+            client = Redis(host=_redis_ip, port=_redis_port, db=db)
+            client.ping()
+            logging.debug(f'DB {db} connected to Redis on attempt {attempt+1}')
+            return client
+        except ConnectionError as e:
+            logging.debug(f'DB {db} not ready (attempt {attempt+1})')
+            time.sleep(2)
+    logging.error(f'DB {db} not available after 10 attempts, exiting.')
     exit(1)
 
-# Database configuration
-rd = Redis(host=_redis_ip, port=_redis_port, db=0)  # Database for wave data
-q = HotQueue('queue', host=_redis_ip, port=_redis_port, db=1)  # Queue for job IDs
-jdb = Redis(host=_redis_ip, port=_redis_port, db=2)  # Database for jobs data
-resdb = Redis(host=_redis_ip, port=_redis_port, db=3)  # Database for job results data
+
+rd = connect_redis(0)  # Database for wave data
+jdb = connect_redis(2)  # Database for jobs data
+resdb = connect_redis(3)  # Database for job results data
+
+# Retry HotQueue separately
+for attempt in range(10):
+    try:
+        q = HotQueue('queue', host=_redis_ip, port=_redis_port, db=1)
+        q._HotQueue__redis.ping()
+        logging.debug('HotQueue is ready.')
+        break
+    except ConnectionError as e:
+        logging.debug(f'HotQueue Redis not ready (attempt {attempt+1})')
+        time.sleep(2)
+else:
+    logging.error('HotQueue Redis failed after 10 tries, exiting.')
+    exit(1)
 
 # Logging configuration
 _log_level = os.environ.get('LOG_LEVEL')  # Environment variable for logging level
@@ -179,9 +191,19 @@ def plot_height_vs_time(month: int, year: int, job_id: str) -> str:
     return file_path
     
 if __name__ == '__main__':
-    for _ in range(15):
+    while True:
         try:
             pull_job()
         except BusyLoadingError:
             logging.warning('Redis database not fully loaded, trying again in 1 second...')
             time.sleep(1)
+            continue
+        except ConnectionError as e:
+            logging.error(f'Redis connection dropped in worker. Reconnecting in 2 seconds...')
+            time.sleep(2)
+            q = HotQueue('queue', host=_redis_ip, port=_redis_port, db=1)
+            continue
+        except Exception:
+            logging.error('Unexpected error in worker, restarting pull_job() in 2 seconds...')
+            time.sleep(2)
+            continue
