@@ -39,6 +39,10 @@ wave-data-analysis/
 
 The app downloads and processes the dataset dynamically at runtime using HTTP requests and Python's `zipfile` module — no manual uploads needed!
 
+### Demo Video
+Here is a link to a YouTube video demonstrating our project.  
+https://www.youtube.com/watch?v=YvT3px5j2s8
+
 ### Software Architecture Diagram
 ![Software Architecture Diagram](diagram.png)
 
