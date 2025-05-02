@@ -409,3 +409,6 @@ curl wave.coe332.tacc.cloud/download/0384b7fc-facc-4704-b781-9bd8dc7bb142 --outp
 curl wave-test.coe332.tacc.cloud/download/0384b7fc-facc-4704-b781-9bd8dc7bb142 --output plot2.png
 ```
 ---
+
+### AI Usage Disclaimer
+Artificial intelligence was utilized to assist in debugging, specifically Kubernetes. We also used AI to provide inspiration on how to format our documentation.
