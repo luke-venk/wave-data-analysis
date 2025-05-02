@@ -56,7 +56,8 @@ git clone git@github.com:luke-venk/wave-data-analysis.git
 cd wave-data-analysis
 ```
 
-To use Docker Compose, we automated the build instructions in the Makefile. Please run the following command:  
+To use Docker Compose, we automated the build instructions in the Makefile. Note that you must be logged into Docker Hub. Please run the following commands:  
+```docker login```  
 ```make docker```  
 
 Once the containers are up and running, open a new terminal, and refer to the following sections to either run our tests or run any of the Flask API endpoints.
